@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using ProyectoParcial1.Services;
 
 namespace ProyectoParcial1;
 
@@ -15,10 +16,13 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
 
-#if DEBUG
-		builder.Logging.AddDebug();
-#endif
 
-		return builder.Build();
+        var pokemonService = new PokemonService();
+
+#if DEBUG
+        builder.Logging.AddDebug();
+#endif      
+
+        return builder.Build();
 	}
 }
