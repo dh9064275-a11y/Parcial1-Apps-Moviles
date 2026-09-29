@@ -45,11 +45,18 @@ public class MainViewModel : INotifyPropertyChanged
     // Se crea un comando para darle la logica al boton de la interfaz de usuario que ejecutara la funcion CargarDatos.
     public ICommand LoadPokemonsCommand { get; set; }
 
+    // Se crea un comando para manejar la selección de un Pokémon y navegar hacia su pantalla de detalle.
+    public ICommand SelectPokemonCommand { get; set; }
+
     // Se define el constructor de la clase MainViewModel donde se inicializa el comando LoadPokemonsCommand.
     public MainViewModel()
     {
         // El comando ejecuta la funcion CargarDatos cuando se presiona el boton de la interfaz de usuario.
         LoadPokemonsCommand = new Command(async () => await CargarDatos());
+
+        // El comando ejecuta la función SeleccionarPokemon cuando el usuario selecciona un Pokémon de la lista.
+        SelectPokemonCommand =
+        new Command<Pokemon>(async (pokemon) => await SeleccionarPokemon(pokemon));
     }
 
     // Se define la funcion CargarDatos que se ejecuta cuando se presiona el boton de la interfaz de usuario.
@@ -100,6 +107,17 @@ public class MainViewModel : INotifyPropertyChanged
             // Se indica que ya no esta cargando para permitir nuevas llamadas al servicio.
             IsLoading = false; 
         }
+    }
+
+    // Se define la función SeleccionarPokemon que se ejecuta cuando el usuario selecciona un Pokémon de la lista.
+    private async Task SeleccionarPokemon(Pokemon pokemon)
+    {
+        // Se verifica que el Pokémon seleccionado no sea nulo antes de realizar la navegación.
+        if (pokemon == null)
+            return;
+
+        // Se navega hacia la pantalla de detalle enviando el Pokémon seleccionado.
+        await Shell.Current.Navigation.PushAsync(new DetallePage(pokemon));
     }
 
     // Se implementa la interfaz de notificacion de cambios para notificar a la interfaz de usuario cuando hay alguna modificacion.

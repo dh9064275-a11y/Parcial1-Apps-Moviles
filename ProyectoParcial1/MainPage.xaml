@@ -1,39 +1,125 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:vm="clr-namespace:ProyectoParcial1.ViewModels"
-             x:Class="ProyectoParcial1.MainPage">
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="ProyectoParcial1.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ProyectoParcial1.ViewModels"
+    xmlns:model="clr-namespace:ProyectoParcial1.Models"
+    x:Name="MainPageView"
+    Title="Pokédex">
 
     <ContentPage.BindingContext>
         <vm:MainViewModel />
     </ContentPage.BindingContext>
 
-    <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+    <Grid
+        Padding="20"
+        RowDefinitions="Auto,Auto,Auto,*"
+        RowSpacing="15">
 
-            <Button Text="Cargar Datos" 
-                    Command="{Binding LoadPokemonsCommand}" 
-                    HeightRequest="50"
-                    FontSize="16" />
+        <!-- Título -->
+        <VerticalStackLayout Grid.Row="0">
+            <Label
+                Text="Pokédex"
+                FontSize="32"
+                FontAttributes="Bold"
+                HorizontalOptions="Center" />
 
-            <Label Text="{Binding StatusMessage}" 
-                   FontSize="16" 
-                   HorizontalOptions="Center" 
-                   FontAttributes="Bold" />
+            <Label
+                Text="Explorá los primeros Pokémon"
+                FontSize="14"
+                HorizontalOptions="Center" />
+        </VerticalStackLayout>
 
-            <CollectionView ItemsSource="{Binding Pokemons}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Frame Margin="0,5" Padding="10" CornerRadius="8">
-                            <HorizontalStackLayout Spacing="10">
-                                <Label Text="{Binding Id}" FontAttributes="Bold" />
-                                <Label Text="{Binding Name}" FontSize="18" />
-                            </HorizontalStackLayout>
-                        </Frame>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+        <!-- Botón para consumir la API -->
+        <Button
+            Grid.Row="1"
+            Text="Cargar Pokémon"
+            Command="{Binding LoadPokemonsCommand}"
+            HeightRequest="50"
+            FontSize="16"
+            CornerRadius="10" />
+
+        <!-- Mensaje de estado -->
+        <VerticalStackLayout Grid.Row="2" Spacing="8">
+
+            <ActivityIndicator
+                IsRunning="{Binding IsLoading}"
+                IsVisible="{Binding IsLoading}" />
+
+            <Label
+                Text="{Binding StatusMessage}"
+                FontSize="14"
+                HorizontalTextAlignment="Center" />
 
         </VerticalStackLayout>
-    </ScrollView>
+
+        <!-- Lista de Pokémon -->
+        <CollectionView
+        Grid.Row="3"
+        ItemsSource="{Binding Pokemons}"
+        SelectionMode="None">
+
+            <CollectionView.ItemTemplate>
+
+                <DataTemplate x:DataType="model:Pokemon">
+
+                    <Border
+                    Margin="0,5"
+                    Padding="12"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12">
+
+                        <!-- Al tocar la tarjeta se ejecuta el comando del MainViewModel
+                            y se envía como parámetro el Pokémon seleccionado. -->
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                            Command="{Binding Source={x:Reference MainPageView}, Path=BindingContext.SelectPokemonCommand}"
+                            CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+
+                        <Grid
+                            ColumnDefinitions="70,*,Auto"
+                            ColumnSpacing="15">
+
+                            <Image
+                                Grid.Column="0"
+                                Source="{Binding ImageUrl}"
+                                HeightRequest="60"
+                                WidthRequest="60" />
+
+                            <VerticalStackLayout
+                                Grid.Column="1"
+                                VerticalOptions="Center">
+
+                                <Label
+                                    Text="{Binding Name}"
+                                    FontSize="18"
+                                    FontAttributes="Bold" />
+
+                                <Label
+                                    Text="{Binding Id, StringFormat='Pokémon #{0}'}"
+                                    FontSize="13" />
+
+                            </VerticalStackLayout>
+
+                            <Label
+                                Grid.Column="2"
+                                Text="›"
+                                FontSize="30"
+                                VerticalOptions="Center" />
+
+                        </Grid>
+
+                    </Border>
+
+                </DataTemplate>
+
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+
+    </Grid>
 
 </ContentPage>

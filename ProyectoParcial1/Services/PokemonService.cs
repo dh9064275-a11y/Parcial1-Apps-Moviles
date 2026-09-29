@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using ProyectoParcial1.Models;
+using System.Text.Json.Serialization;
 
 namespace ProyectoParcial1.Services
 {
@@ -106,5 +107,7 @@ public class PokemonApiResponse
 // Representa la parte "sprites" del JSON.
 public class PokemonSprites
 {
+    // Se vincula la propiedad front_default del JSON de PokéAPI con la propiedad de C#.
+    [JsonPropertyName("front_default")]
     public string? FrontDefault { get; set; }
 }
