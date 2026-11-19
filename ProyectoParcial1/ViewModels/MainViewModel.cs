@@ -9,7 +9,7 @@ namespace ProyectoParcial1.ViewModels;
 public class MainViewModel : INotifyPropertyChanged
 {
     // Servicio que se comunica con la API (integrado por David Hernandez - integrante 1).
-    private readonly PokemonService _pokemonService = new PokemonService();
+    private readonly IPokemonService _pokemonService;
 
     // Aca se definen las propiedades que se mostraran en la interfaz del usuario.
     public ObservableCollection<Pokemon> Pokemons { get; set; } = new ObservableCollection<Pokemon>();
