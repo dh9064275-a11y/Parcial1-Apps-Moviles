@@ -1,15 +1,16 @@
-﻿
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ProyectoParcial1.Models;
 using ProyectoParcial1.Services;
+using ProyectoParcial1.Repositories;
 
 namespace ProyectoParcial1.ViewModels;
 
 public class MainViewModel : INotifyPropertyChanged
 {
     private readonly IPokemonService _pokemonService;
+    private readonly IPokemonRepository _pokemonRepository;
 
     public ObservableCollection<Pokemon> Pokemons { get; set; } = new();
 
@@ -38,17 +39,19 @@ public class MainViewModel : INotifyPropertyChanged
     public Command LoadPokemonsCommand { get; }
     public Command<Pokemon> SelectPokemonCommand { get; }
 
-    public MainViewModel(IPokemonService pokemonService)
+    public MainViewModel(
+    IPokemonService pokemonService,
+    IPokemonRepository pokemonRepository)
     {
         _pokemonService = pokemonService;
+        _pokemonRepository = pokemonRepository;
 
-        // Ejecuta CargarDatos cuando se presiona el botón.
         LoadPokemonsCommand = new Command(async () => await CargarDatos());
 
-        // Ejecuta SeleccionarPokemon cuando se selecciona un Pokémon.
         SelectPokemonCommand =
             new Command<Pokemon>(async (pokemon) => await SeleccionarPokemon(pokemon));
     }
+
 
     private async Task CargarDatos()
     {
@@ -60,30 +63,62 @@ public class MainViewModel : INotifyPropertyChanged
             IsLoading = true;
             StatusMessage = "Cargando Pokémon...";
 
-            Pokemons.Clear();
-
-            var lista = await _pokemonService.GetPokemonsAsync();
-
-            foreach (var pokemon in lista)
+            try
             {
-                Pokemons.Add(pokemon);
-            }
+                // Obtener los Pokémon desde la API.
+                var lista = await _pokemonService.GetPokemonsAsync();
 
-            StatusMessage = $"Se cargaron {Pokemons.Count} Pokémon.";
-        }
-        catch (ApiException ex)
-        {
-            StatusMessage = $"Error al consultar la API: {ex.Message}";
+                // Guardar cada Pokémon en la base de datos local.
+                foreach (var pokemon in lista)
+                {
+                    await _pokemonRepository.GuardarPokemonAsync(pokemon);
+                }
+
+                // Mostrar los Pokémon descargados.
+                Pokemons.Clear();
+
+                foreach (var pokemon in lista)
+                {
+                    Pokemons.Add(pokemon);
+                }
+
+                StatusMessage = $"Se cargaron {Pokemons.Count} Pokémon.";
+            }
+            catch (Exception)
+            {
+                // Si falla la conexión, intentar recuperar los datos locales.
+                var pokemonsGuardados =
+                    await _pokemonRepository.ObtenerPokemonsAsync();
+
+                Pokemons.Clear();
+
+                foreach (var pokemon in pokemonsGuardados)
+                {
+                    Pokemons.Add(pokemon);
+                }
+
+                if (Pokemons.Count > 0)
+                {
+                    StatusMessage =
+                        $"Sin conexión. Se muestran {Pokemons.Count} Pokémon guardados.";
+                }
+                else
+                {
+                    StatusMessage =
+                        "No se pudo conectar con la API y no hay Pokémon guardados.";
+                }
+            }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Ocurrió un error: {ex.Message}";
+            StatusMessage = $"Error al recuperar los Pokémon: {ex.Message}";
         }
         finally
         {
             IsLoading = false;
         }
     }
+
 
     private async Task SeleccionarPokemon(Pokemon pokemon)
     {
