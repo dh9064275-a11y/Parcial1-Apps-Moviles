@@ -1,6 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Windows.Input;
+using System.Runtime.CompilerServices;
 using ProyectoParcial1.Models;
 using ProyectoParcial1.Services;
 
@@ -8,120 +9,94 @@ namespace ProyectoParcial1.ViewModels;
 
 public class MainViewModel : INotifyPropertyChanged
 {
-    // Servicio que se comunica con la API (integrado por David Hernandez - integrante 1).
     private readonly IPokemonService _pokemonService;
 
-    // Aca se definen las propiedades que se mostraran en la interfaz del usuario.
-    public ObservableCollection<Pokemon> Pokemons { get; set; } = new ObservableCollection<Pokemon>();
+    public ObservableCollection<Pokemon> Pokemons { get; set; } = new();
 
-    // Se define un mensaje para mostrar la accion que tiene que realizar el usuario o el estado del mismo.
-    private string statusMsg = "Presiona 'Cargar datos' para iniciar.";
-   
-    // Se crea la propiedad del mensaje de estado que se mostrara en la interfaz.
+    private string _statusMessage = "Presioná el botón para cargar los Pokémon.";
     public string StatusMessage
     {
-        get => statusMsg;
+        get => _statusMessage;
         set
         {
-            // Se muestra el mensaje de estado en la interfaz de usuario.
-            statusMsg = value;
-            OnPropertyChanged(nameof(StatusMessage));
+            _statusMessage = value;
+            OnPropertyChanged();
         }
     }
 
-    // Se define una propiedad para indicar el estado del sistema de carga de datos.
-    private bool isLoading;
+    private bool _isLoading;
     public bool IsLoading
     {
-        get => isLoading;
+        get => _isLoading;
         set
         {
-            // Se muestra que esta cargando en la interfaz de usuario.
-            isLoading = value;
-            OnPropertyChanged(nameof(IsLoading));
+            _isLoading = value;
+            OnPropertyChanged();
         }
     }
 
-    // Se crea un comando para darle la logica al boton de la interfaz de usuario que ejecutara la funcion CargarDatos.
-    public ICommand LoadPokemonsCommand { get; set; }
+    public Command LoadPokemonsCommand { get; }
+    public Command<Pokemon> SelectPokemonCommand { get; }
 
-    // Se crea un comando para manejar la selección de un Pokémon y navegar hacia su pantalla de detalle.
-    public ICommand SelectPokemonCommand { get; set; }
-
-    // Se define el constructor de la clase MainViewModel donde se inicializa el comando LoadPokemonsCommand.
-    public MainViewModel()
+    public MainViewModel(IPokemonService pokemonService)
     {
-        // El comando ejecuta la funcion CargarDatos cuando se presiona el boton de la interfaz de usuario.
+        _pokemonService = pokemonService;
+
+        // Ejecuta CargarDatos cuando se presiona el botón.
         LoadPokemonsCommand = new Command(async () => await CargarDatos());
 
-        // El comando ejecuta la función SeleccionarPokemon cuando el usuario selecciona un Pokémon de la lista.
+        // Ejecuta SeleccionarPokemon cuando se selecciona un Pokémon.
         SelectPokemonCommand =
-        new Command<Pokemon>(async (pokemon) => await SeleccionarPokemon(pokemon));
+            new Command<Pokemon>(async (pokemon) => await SeleccionarPokemon(pokemon));
     }
 
-    // Se define la funcion CargarDatos que se ejecuta cuando se presiona el boton de la interfaz de usuario.
     private async Task CargarDatos()
     {
-        // Si ya está cargando, ignora los siguientes clics para evitar multiples llamadas.
-        if (IsLoading) return;
-
-        // Si esta cargando, se muestra el mensaje de estado y se limpia la lista de Pokemons antes de cargar nuevos datos.
-        IsLoading = true;
-        StatusMessage = "Cargando datos desde la API...";
-        Pokemons.Clear();
+        if (IsLoading)
+            return;
 
         try
         {
-            // Se comunica con el servicio para obtener los datos de la API de Pokemon y se guarda en una variable.
-            var pokemons = await _pokemonService.GetPokemonsAsync();
+            IsLoading = true;
+            StatusMessage = "Cargando Pokémon...";
 
-            // Se verifica que la variable no sea nula y tenga elementos para evitar errores y poder agregarlos a la lista visible en la interfaz de usuario.
-            if (pokemons != null && pokemons.Count > 0)
+            Pokemons.Clear();
+
+            var lista = await _pokemonService.GetPokemonsAsync();
+
+            foreach (var pokemon in lista)
             {
-                // Por cada elemento obtenido se agrega a la lista.
-                foreach (var pokemon in pokemons)
-                {
-                    Pokemons.Add(pokemon);
-                }
-                // Se muestra un mensaje de estado exitoso indicando la cantidad de elementos obtenidos.
-                StatusMessage = $"¡Carga exitosa! Se obtuvieron {Pokemons.Count} elementos.";
+                Pokemons.Add(pokemon);
             }
-            else
-            {
-                // Caso contrario se muestra un mensaje de estado indicando que no se encontraron datos.
-                StatusMessage = "No se encontraron datos.";
-            }
+
+            StatusMessage = $"Se cargaron {Pokemons.Count} Pokémon.";
         }
-        catch (ApiException apiEx)
+        catch (ApiException ex)
         {
-            // Captura errores definidos en el Service.
-            StatusMessage = apiEx.Message;
+            StatusMessage = $"Error al consultar la API: {ex.Message}";
         }
         catch (Exception ex)
         {
-            // Captura cualquier otro error no contemplado.
-            StatusMessage = $"Error inesperado: {ex.Message}";
+            StatusMessage = $"Ocurrió un error: {ex.Message}";
         }
         finally
         {
-            // Se indica que ya no esta cargando para permitir nuevas llamadas al servicio.
-            IsLoading = false; 
+            IsLoading = false;
         }
     }
 
-    // Se define la función SeleccionarPokemon que se ejecuta cuando el usuario selecciona un Pokémon de la lista.
     private async Task SeleccionarPokemon(Pokemon pokemon)
     {
-        // Se verifica que el Pokémon seleccionado no sea nulo antes de realizar la navegación.
         if (pokemon == null)
             return;
 
-        // Se navega hacia la pantalla de detalle enviando el Pokémon seleccionado.
         await Shell.Current.Navigation.PushAsync(new DetallePage(pokemon));
     }
 
-    // Se implementa la interfaz de notificacion de cambios para notificar a la interfaz de usuario cuando hay alguna modificacion.
     public event PropertyChangedEventHandler? PropertyChanged;
-    protected void OnPropertyChanged(string name) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }

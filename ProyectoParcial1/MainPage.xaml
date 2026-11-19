@@ -4,14 +4,9 @@
     x:Class="ProyectoParcial1.MainPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:vm="clr-namespace:ProyectoParcial1.ViewModels"
     xmlns:model="clr-namespace:ProyectoParcial1.Models"
     x:Name="MainPageView"
     Title="Pokédex">
-
-    <ContentPage.BindingContext>
-        <vm:MainViewModel />
-    </ContentPage.BindingContext>
 
     <Grid
         Padding="20"
@@ -57,26 +52,25 @@
 
         <!-- Lista de Pokémon -->
         <CollectionView
-        Grid.Row="3"
-        ItemsSource="{Binding Pokemons}"
-        SelectionMode="None">
+            Grid.Row="3"
+            ItemsSource="{Binding Pokemons}"
+            SelectionMode="None">
 
             <CollectionView.ItemTemplate>
 
                 <DataTemplate x:DataType="model:Pokemon">
 
                     <Border
-                    Margin="0,5"
-                    Padding="12"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 12">
+                        Margin="0,5"
+                        Padding="12"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 12">
 
-                        <!-- Al tocar la tarjeta se ejecuta el comando del MainViewModel
-                            y se envía como parámetro el Pokémon seleccionado. -->
+                        <!-- Selección del Pokémon -->
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer
-                            Command="{Binding Source={x:Reference MainPageView}, Path=BindingContext.SelectPokemonCommand}"
-                            CommandParameter="{Binding .}" />
+                                Command="{Binding Source={x:Reference MainPageView}, Path=BindingContext.SelectPokemonCommand}"
+                                CommandParameter="{Binding .}" />
                         </Border.GestureRecognizers>
 
                         <Grid

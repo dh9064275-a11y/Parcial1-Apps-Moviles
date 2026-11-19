@@ -1,9 +1,11 @@
-﻿namespace ProyectoParcial1;
+﻿using ProyectoParcial1.ViewModels;
+namespace ProyectoParcial1;
 
 public partial class MainPage : ContentPage
 {
-    public MainPage()
+    public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
+        BindingContext = viewModel;
     }
 }

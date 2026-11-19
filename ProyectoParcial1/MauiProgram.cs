@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.Extensions.Logging;
 using ProyectoParcial1.Services;
+using ProyectoParcial1.ViewModels;
 
 namespace ProyectoParcial1;
 
@@ -18,10 +19,16 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // Registro de dependencias
+        // Registro de servicios
         builder.Services.AddSingleton<HttpClient>();
-
         builder.Services.AddSingleton<IPokemonService, PokemonService>();
+
+        // Registro de ViewModels y páginas
+        builder.Services.AddTransient<MainViewModel>();
+        builder.Services.AddTransient<MainPage>();
+
+        // Registro de la navegación principal
+        builder.Services.AddSingleton<AppShell>();
 
 #if DEBUG
         builder.Logging.AddDebug();
