@@ -17,7 +17,6 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
     steps:
-
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
@@ -25,8 +24,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.425'
-	
-	      - name: Cachear paquetes NuGet
+
+      - name: Cachear paquetes NuGet
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
