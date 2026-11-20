@@ -8,8 +8,13 @@ public class PokemonDatabase
     private readonly SQLiteAsyncConnection _database;
 
     public PokemonDatabase(string dbPath)
+    : this(new SQLiteConnectionString(dbPath, true))
     {
-        _database = new SQLiteAsyncConnection(dbPath);
+    }
+
+    public PokemonDatabase(SQLiteConnectionString connectionString)
+    {
+        _database = new SQLiteAsyncConnection(connectionString);
         _database.CreateTableAsync<Pokemon>().Wait();
     }
 
